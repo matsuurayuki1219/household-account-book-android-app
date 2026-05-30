@@ -1,0 +1,6 @@
+{
+  "name": "ミニマル家計簿",
+  "description": "美しく使いやすい、ミニマルなデザインの家計簿アプリです。充実のグラフ表示とダークモードに対応しています。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
