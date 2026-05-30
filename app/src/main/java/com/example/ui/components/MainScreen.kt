@@ -28,6 +28,8 @@ import com.example.ui.BudgetViewModel
 import com.example.ui.CategoryTheme
 import com.example.ui.theme.ExpenseCoral
 import com.example.ui.theme.IncomeTeal
+import com.example.ui.theme.KakeiboTheme
+import androidx.compose.ui.tooling.preview.Preview
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -44,6 +46,36 @@ fun MainScreen(
     val typeFilter by viewModel.selectedTypeFilter.collectAsState()
     val activeTab by viewModel.chartsTab.collectAsState()
 
+    MainScreenContent(
+        transactions = transactions,
+        typeFilter = typeFilter,
+        activeTab = activeTab,
+        isDark = isDark,
+        onToggleDark = onToggleDark,
+        onSetTypeFilter = { viewModel.setTypeFilter(it) },
+        onSetChartsTab = { viewModel.setChartsTab(it) },
+        onInsertTransaction = { title, amount, type, category, memo ->
+            viewModel.insertTransaction(title, amount, type, category, memo)
+        },
+        onDeleteTransaction = { viewModel.deleteTransaction(it) },
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScreenContent(
+    transactions: List<Transaction>,
+    typeFilter: String,
+    activeTab: Int,
+    isDark: Boolean,
+    onToggleDark: () -> Unit,
+    onSetTypeFilter: (String) -> Unit,
+    onSetChartsTab: (Int) -> Unit,
+    onInsertTransaction: (String, Long, String, String, String) -> Unit,
+    onDeleteTransaction: (Transaction) -> Unit,
+    modifier: Modifier = Modifier
+) {
     var showAddDialog by remember { mutableStateOf(false) }
 
     // Computations
@@ -287,7 +319,7 @@ fun MainScreen(
                                 .fillMaxHeight()
                                 .clip(RoundedCornerShape(18.dp))
                                 .background(donutBg)
-                                .clickable { viewModel.setChartsTab(0) },
+                                .clickable { onSetChartsTab(0) },
                             contentAlignment = Alignment.Center
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -320,7 +352,7 @@ fun MainScreen(
                                 .fillMaxHeight()
                                 .clip(RoundedCornerShape(18.dp))
                                 .background(barBg)
-                                .clickable { viewModel.setChartsTab(1) },
+                                .clickable { onSetChartsTab(1) },
                             contentAlignment = Alignment.Center
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -395,7 +427,7 @@ fun MainScreen(
                                             if (isSelected) color.copy(alpha = 0.15f)
                                             else Color.Transparent
                                         )
-                                        .clickable { viewModel.setTypeFilter(typeKey) }
+                                        .clickable { onSetTypeFilter(typeKey) }
                                         .padding(horizontal = 8.dp, vertical = 4.dp)
                                 ) {
                                     Text(
@@ -549,7 +581,7 @@ fun MainScreen(
 
                                 // Subtle Delete action icon
                                 IconButton(
-                                    onClick = { viewModel.deleteTransaction(item) },
+                                    onClick = { onDeleteTransaction(item) },
                                     modifier = Modifier
                                         .background(MaterialTheme.colorScheme.background, CircleShape)
                                         .size(28.dp)
@@ -572,11 +604,116 @@ fun MainScreen(
                 AddTransactionDialog(
                     onDismiss = { showAddDialog = false },
                     onSave = { title, amount, type, category, memo ->
-                        viewModel.insertTransaction(title, amount, type, category, memo)
+                        onInsertTransaction(title, amount, type, category, memo)
                         showAddDialog = false
                     }
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Light Theme")
+@Composable
+fun MainScreenPreview() {
+    val sampleTransactions = listOf(
+        Transaction(
+            id = 1,
+            title = "給与 (5月分)",
+            amount = 320000,
+            type = "INCOME",
+            category = "給与",
+            timestamp = System.currentTimeMillis() - 432000000,
+            memo = "毎月の給与。お疲れ様でした。"
+        ),
+        Transaction(
+            id = 2,
+            title = "マンション家賃",
+            amount = 78000,
+            type = "EXPENSE",
+            category = "住宅・光熱",
+            timestamp = System.currentTimeMillis() - 345600000,
+            memo = "5月分家賃支払い完了"
+        ),
+        Transaction(
+            id = 3,
+            title = "スーパーお買い物",
+            amount = 4320,
+            type = "EXPENSE",
+            category = "食費",
+            timestamp = System.currentTimeMillis() - 86400000,
+            memo = "食材まとめ買い。お肉、野菜など"
+        )
+    )
+
+    KakeiboTheme(darkTheme = false) {
+        MainScreenContent(
+            transactions = sampleTransactions,
+            typeFilter = "ALL",
+            activeTab = 0,
+            isDark = false,
+            onToggleDark = {},
+            onSetTypeFilter = {},
+            onSetChartsTab = {},
+            onInsertTransaction = { _, _, _, _, _ -> },
+            onDeleteTransaction = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Dark Theme")
+@Composable
+fun MainScreenDarkPreview() {
+    val sampleTransactions = listOf(
+        Transaction(
+            id = 1,
+            title = "給与 (5月分)",
+            amount = 320000,
+            type = "INCOME",
+            category = "給与",
+            timestamp = System.currentTimeMillis() - 432000000,
+            memo = "毎月の給与。お疲れ様でした。"
+        ),
+        Transaction(
+            id = 2,
+            title = "マンション家賃",
+            amount = 78000,
+            type = "EXPENSE",
+            category = "住宅・光熱",
+            timestamp = System.currentTimeMillis() - 345600000,
+            memo = "5月分家賃支払い完了"
+        )
+    )
+
+    KakeiboTheme(darkTheme = true) {
+        MainScreenContent(
+            transactions = sampleTransactions,
+            typeFilter = "ALL",
+            activeTab = 0,
+            isDark = true,
+            onToggleDark = {},
+            onSetTypeFilter = {},
+            onSetChartsTab = {},
+            onInsertTransaction = { _, _, _, _, _ -> },
+            onDeleteTransaction = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Empty State")
+@Composable
+fun MainScreenEmptyPreview() {
+    KakeiboTheme(darkTheme = false) {
+        MainScreenContent(
+            transactions = emptyList(),
+            typeFilter = "ALL",
+            activeTab = 0,
+            isDark = false,
+            onToggleDark = {},
+            onSetTypeFilter = {},
+            onSetChartsTab = {},
+            onInsertTransaction = { _, _, _, _, _ -> },
+            onDeleteTransaction = {}
+        )
     }
 }
